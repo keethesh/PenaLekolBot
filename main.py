@@ -52,31 +52,31 @@ def get_meteo():
 
     if fuzz.partial_ratio(texte, "fortes") >= 75:
         ecole = False
-        reason = "lapli fort"
+        reason = "ene avis lapli fort"
 
     elif fuzz.partial_ratio(texte, "torrentielles") >= 75:
         ecole = False
-        reason = "lapli torrentiel."
+        reason = "ene avis lapli torrentiel."
 
     elif fuzz.partial_ratio(texte, "classe I" or "classe 1") >= 75:
         ecole = True
-        reason = "ene cyclone classe I."
+        reason = "ene alert cyclone classe I."
 
     elif fuzz.partial_ratio(texte, "classe II" or "classe 2") >= 75:
         ecole = False
-        reason = "ene cyclone classe II."
+        reason = "ene alert cyclone classe II."
 
     elif fuzz.partial_ratio(texte, "classe III" or "classe 3") >= 75:
         ecole = False
-        reason = "ene cyclone classe III."
+        reason = "ene alert cyclone classe III."
 
     elif fuzz.partial_ratio(texte, "classe IV" or "classe 4") >= 75:
         ecole = False
-        reason = "ene cyclone classe IV."
+        reason = "ene alert cyclone classe IV."
 
     elif fuzz.partial_ratio(texte, "classe V" or "classe 5") >= 75:
         ecole = False
-        reason = "ene cyclone classe V."
+        reason = "ene alert cyclone classe V."
 
     else:
         ecole = True
@@ -91,7 +91,9 @@ def download_screenshot():
         "https://api.apiflash.com/v1/urltoimage?access_key=" + apiflash_access_key + "&url=" + url).content
     with open("screenshot.jpeg", "wb+") as f:
         f.write(response)
-    return
 
 
-client.run(TOKEN)
+try:
+    client.run(TOKEN)
+except AttributeError:
+    raise ValueError("Token cannot be loaded")

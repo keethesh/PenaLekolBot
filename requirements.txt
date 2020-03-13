@@ -1,0 +1,6 @@
+lxml
+fuzzywuzzy
+requests
+discord.py
+python-dotenv
+python-Levenshtein
