@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from lxml import html
 import keep_alive
+from datetime import datetime, timedelta
 
 client = discord.Client()
 load_dotenv()
@@ -14,10 +15,8 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 @client.event
 async def on_ready():
     for guild in client.guilds:
-        print(
-            f'{client.user} is connected to the following guild:\n\n'
-            f'{guild.name} (with id {guild.id})'
-        )
+        print(f'{client.user} is connected to the following guild:\n'
+              f'{guild.name} (with id {guild.id})\n')
         break
 
 
@@ -26,14 +25,45 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    author = message.author
+    message_time = (message.created_at + timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
+
     if message.content == "!afzal":
+        print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
+        title = "Kiken pe rode koner si ena lekol..."
+        desc = "alors li ine ecrire !afzal"
+        embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+        embed.set_author(name="PenaLekolBot")
+        name = "Eski ena lekol?"
         gotoschool, raison = get_meteo()[0], get_meteo()[1]
-        if not gotoschool:
-            await message.channel.send("Pena lekol acoz ena " + raison)
-            await message.channel.send("Copyright keethesh#4492, ban moV voler")
-        elif gotoschool:
-            await message.channel.send("Aret fer paresse, ena lekol demain.")
-            await message.channel.send("Copyright keethesh#4492, ban moV voler")
+        time = datetime.now() + timedelta(hours=5)
+        day = time.weekday()
+
+        if not gotoschool and not day == (5 or 6):
+            embed.add_field(name=name,
+                            value="Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!", inline=True)
+            await message.channel.send(embed=embed)
+
+        elif not gotoschool and day == (5 or 6):
+            embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+            embed.set_author(name="PenaLekolBot")
+            embed.add_field(name=name, value="Pena lekol acoz ena " + raison, inline=True)
+            await message.channel.send(embed=embed)
+
+        elif gotoschool and day == (5 or 6):
+            embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+            embed.set_author(name="PenaLekolBot")
+            embed.add_field(name=name, value="Ti kapav ena lekol, mais nous dans weekend. To bien gopia.",
+                            inline=True)
+            await message.channel.send(embed=embed)
+
+        elif gotoschool and not day == (5 or 6):
+            embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+            embed.set_author(name="PenaLekolBot")
+            embed.add_field(name=name, value="Aret fer paresse, ena lekol demain.", inline=True)
+            await message.channel.send(embed=embed)
+
+
     # elif message.content == "!screenshot":
     #     e = discord.Embed(title="Screenshot", description="http://metservice.intnet.mu/")
     #     download_screenshot()
@@ -41,7 +71,7 @@ async def on_message(message):
     #     file = discord.File("filepath.png", filename="...")
     #     await message.channel.send(embed=e)
     elif message.content == "!stp":
-        await message.channel.send("!svp pour afficher ce message")
+        await message.channel.send("!stp pour afficher ce message")
         await message.channel.send("!afzal pour voir si y'a ecole ou pas")
         # await message.channel.send("!screenshot pour avoir une screen du site de la meteo")
 
@@ -49,7 +79,8 @@ async def on_message(message):
 def get_meteo():
     response = requests.get("http://metservice.intnet.mu/")
     doc = html.fromstring(response.content)
-    texte = doc.xpath("//*[@id=\"content\"]/div[2]/div/div[1]/p/marquee/a/span")[0].text.strip()
+    texte = doc.xpath("//*[@id=\"content\"]/div[2]/div/div[1]/p/marquee/a/span"
+                      )[0].text.strip()
 
     if fuzz.partial_ratio(texte, "fortes") >= 75:
         ecole = False
@@ -89,12 +120,14 @@ def download_screenshot():
     apiflash_access_key = "043019f3a4a84a86b4a6a7d4bf52e98c"
     url = "http://metservice.intnet.mu/"
     response = requests.get(
-        "https://api.apiflash.com/v1/urltoimage?access_key=" + apiflash_access_key + "&url=" + url).content
+        "https://api.apiflash.com/v1/urltoimage?access_key=" +
+        apiflash_access_key + "&url=" + url).content
     with open("screenshot.jpeg", "wb+") as f:
         f.write(response)
 
 
 keep_alive.keep_alive()
+
 try:
     client.run(TOKEN)
 except AttributeError:
