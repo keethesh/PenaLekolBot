@@ -29,38 +29,35 @@ async def on_message(message):
 
     if message.content == "!afzal":
         print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
-        title = "Kiken pe rode koner si ena lekol..."
-        desc = "alors li ine ecrire !afzal\n" \
-               "Source code available [here](https://github.com/keethesh/PenaLekolBot)"
-        name = "Eski ena lekol?"
-        embed = discord.Embed(title=title, description=desc, color=0x8564dd)
-        embed.set_author(name="PenaLekolBot")
+        title = "Verdict..."
+        # desc = "alors li ine ecrire !afzal"
+        # name = "Eski ena lekol?"
         gotoschool, raison = get_meteo()[0], get_meteo()[1]
         time = datetime.now() + timedelta(hours=5)
         day = time.weekday()
 
         if not gotoschool and not day == (5 or 6):
-            embed.add_field(name=name,
-                            value="Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!", inline=True)
+            desc = "Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!"
+            # embed.add_field(name=name,
+            #                 value="Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!", inline=True)
 
         elif not gotoschool and day == (5 or 6):
-            embed = discord.Embed(title=title, description=desc, color=0x8564dd)
-            embed.set_author(name="PenaLekolBot")
-            embed.add_field(name=name, value="Pena lekol acoz ena " + raison, inline=True)
+            desc = "Pena lekol acoz ena " + raison
+            # embed.add_field(name=name, value="Pena lekol acoz ena " + raison, inline=True)
 
         elif gotoschool and day == (5 or 6):
-            embed = discord.Embed(title=title, description=desc, color=0x8564dd)
-            embed.set_author(name="PenaLekolBot")
-            embed.add_field(name=name, value="Ti kapav ena lekol, mais nous dans weekend. To bien gopia.",
-                            inline=True)
+            desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
+            # embed.add_field(name=name, value="Ti kapav ena lekol, mais nous dans weekend. To bien gopia.",
+            #                 inline=True)
 
-        elif gotoschool and not day == (5 or 6):
-            embed = discord.Embed(title=title, description=desc, color=0x8564dd)
-            embed.set_author(name="PenaLekolBot")
-            embed.add_field(name=name, value="Aret fer paresse, ena lekol demain.", inline=True)
+        else:
+            desc = "Aret fer paresse, ena lekol demain."
+            # embed.add_field(name=name, value="Aret fer paresse, ena lekol demain.", inline=True)
 
+        embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+        embed.set_author(name="Pena Lekol Bot (click to view code)", url="https://github.com/keethesh/PenaLekolBot")
         embed.set_footer(text="Made by keethesh#4492")
-        await message.channel.send(embed=embed)
+        await message.channel.send("Kiken ine ecrire \"!afzal\", ala rezilta⬇️", embed=embed)
 
     # elif message.content == "!screenshot":
     #     e = discord.Embed(title="Screenshot", description="http://metservice.intnet.mu/")
