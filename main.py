@@ -17,7 +17,6 @@ async def on_ready():
     for guild in client.guilds:
         print(f'{client.user} is connected to the following guild:\n'
               f'{guild.name} (with id {guild.id})\n')
-        break
 
 
 @client.event
@@ -31,11 +30,12 @@ async def on_message(message):
     if message.content == "!afzal":
         print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
         title = "Kiken pe rode koner si ena lekol..."
-        desc = "alors li ine ecrire !afzal"
-        embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+        desc = "alors li ine ecrire !afzal\n" \
+               "Source code available [here](https://github.com/keethesh/PenaLekolBot)"
+        name = "Eski ena lekol?"
+        embed = discord.Embed(title=title, url="http://metservice.intnet.mu/", description=desc, color=0x8564dd)
         embed.set_author(name="PenaLekolBot")
         embed.set_footer(text="Made by keethesh#4492")
-        name = "Eski ena lekol?"
         gotoschool, raison = get_meteo()[0], get_meteo()[1]
         time = datetime.now() + timedelta(hours=5)
         day = time.weekday()
