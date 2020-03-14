@@ -4,6 +4,7 @@ import requests
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from lxml import html
+import keep_alive
 
 client = discord.Client()
 load_dotenv()
@@ -93,6 +94,7 @@ def download_screenshot():
         f.write(response)
 
 
+keep_alive.keep_alive()
 try:
     client.run(TOKEN)
 except AttributeError:
