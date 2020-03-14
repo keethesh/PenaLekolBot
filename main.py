@@ -33,12 +33,12 @@ async def on_message(message):
         desc = "alors li ine ecrire !afzal\n" \
                "Source code available [here](https://github.com/keethesh/PenaLekolBot)"
         name = "Eski ena lekol?"
-        embed = discord.Embed(title=title, url="http://metservice.intnet.mu/", description=desc, color=0x8564dd)
+        embed = discord.Embed(title=title, description=desc, color=0x8564dd)
         embed.set_author(name="PenaLekolBot")
-        embed.set_footer(text="Made by keethesh#4492")
         gotoschool, raison = get_meteo()[0], get_meteo()[1]
         time = datetime.now() + timedelta(hours=5)
         day = time.weekday()
+
         if not gotoschool and not day == (5 or 6):
             embed.add_field(name=name,
                             value="Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!", inline=True)
@@ -59,6 +59,7 @@ async def on_message(message):
             embed.set_author(name="PenaLekolBot")
             embed.add_field(name=name, value="Aret fer paresse, ena lekol demain.", inline=True)
 
+        embed.set_footer(text="Made by keethesh#4492")
         await message.channel.send(embed=embed)
 
     # elif message.content == "!screenshot":
