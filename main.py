@@ -30,21 +30,27 @@ async def on_message(message):
     if message.content == "!afzal":
         print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
         title = "Verdict..."
-        gotoschool, raison = get_meteo()[0], get_meteo()[1]
+        school, raison = get_meteo()[0], get_meteo()[1]
         time = datetime.now() + timedelta(hours=5)
         day = time.weekday()
 
-        if not gotoschool and not day == (5 or 6):
+        if not school and not day == (5 or 6):
             desc = "Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!"
 
-        elif not gotoschool and day == (5 or 6):
+        elif not school and day == (5 or 6):
             desc = "Pena lekol acoz ena " + raison
 
-        elif gotoschool and day == (5 or 6):
-            desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
+        elif school and day == (5 or 6):
+            if raison == "ene alert cyclone classe I.":
+                desc = "Meme si ena ene cyclone classe I, ti pou ena lekol si nou pa ti dans weekend. To bien gopia."
+            else:
+              desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
 
         else:
-            desc = "Aret fer paresse, ena lekol demain."
+            if raison == "ene alert cyclone classe I.":
+              desc = "Meme si ena ene cyclone classe I, ena lekol demain."
+            else:
+              desc = "Aret fer paresse, ena lekol demain."
 
         embed = discord.Embed(title=title, description=desc, color=0x8564dd)
         embed.set_author(name="Pena Lekol Bot (click to view code)", url="https://github.com/keethesh/PenaLekolBot")
@@ -71,7 +77,7 @@ def get_meteo():
 
     if fuzz.partial_ratio(texte, "fortes") >= 75:
         ecole = False
-        reason = "ene avis lapli fort"
+        reason = "ene avis lapli fort."
 
     elif fuzz.partial_ratio(texte, "torrentielles") >= 75:
         ecole = False
