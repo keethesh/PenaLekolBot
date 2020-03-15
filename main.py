@@ -1,11 +1,13 @@
 import os
+from datetime import datetime, timedelta
+
 import discord
 import requests
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from lxml import html
+
 import keep_alive
-from datetime import datetime, timedelta
 
 client = discord.Client()
 load_dotenv()
@@ -32,25 +34,27 @@ async def on_message(message):
         title = "Verdict..."
         school, raison = get_meteo()[0], get_meteo()[1]
         time = datetime.now() + timedelta(hours=5)
-        day = time.weekday()
+        weekend = False
+        if time.weekday() == 5 or time.weekday() == 6:
+            weekend = True
 
-        if not school and not day == (5 or 6):
+        if not school and weekend:
             desc = "Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!"
 
-        elif not school and day == (5 or 6):
+        elif not school and not weekend:
             desc = "Pena lekol acoz ena " + raison
 
-        elif school and day == (5 or 6):
+        elif school and weekend:
             if raison == "ene alert cyclone classe I.":
                 desc = "Meme si ena ene cyclone classe I, ti pou ena lekol si nou pa ti dans weekend. To bien gopia."
             else:
-              desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
+                desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
 
         else:
             if raison == "ene alert cyclone classe I.":
-              desc = "Meme si ena ene cyclone classe I, ena lekol demain."
+                desc = "Meme si ena ene cyclone classe I, ena lekol demain."
             else:
-              desc = "Aret fer paresse, ena lekol demain."
+                desc = "Aret fer paresse, ena lekol demain."
 
         embed = discord.Embed(title=title, description=desc, color=0x8564dd)
         embed.set_author(name="Pena Lekol Bot (click to view code)", url="https://github.com/keethesh/PenaLekolBot")
