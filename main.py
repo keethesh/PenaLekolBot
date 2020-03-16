@@ -6,13 +6,53 @@ import requests
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from lxml import html
+# from timeloop import Timeloop
 
 import keep_alive
 
 client = discord.Client()
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+# tl = Timeloop()
 
+
+def create_embed():
+    title = "Verdict..."
+    school, raison = get_meteo()[0], get_meteo()[1]
+    # time = datetime.now() + timedelta(hours=5)
+    time = datetime.now() + timedelta(seconds=10)
+    weekend = False
+    if time.weekday() == 5 or time.weekday() == 6:
+        weekend = True
+
+    if not school and weekend:
+        desc = "Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!"
+
+    elif not school and not weekend:
+        desc = "Pena lekol acoz ena " + raison
+
+    elif school and weekend:
+        if raison == "ene alert cyclone classe I.":
+            desc = "Meme si ena ene cyclone classe I, ti pou ena lekol si nou pa ti dans weekend. To bien gopia."
+        else:
+            desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
+
+    else:
+        if raison == "ene alert cyclone classe I.":
+            desc = "Meme si ena ene cyclone classe I, ena lekol demain."
+        else:
+            desc = "Aret fer paresse, ena lekol demain."
+
+    return title, desc
+
+
+# @tl.job(interval=timedelta(hours=5))
+# def automate_checks():
+    # school, raison = get_meteo()[0], [1]
+    # channel = client.get_channel(687591883643289624)
+    # school = False
+    # if not school:
+    #     await channel.send("@everyone Pena lekol!!!!! ")
 
 @client.event
 async def on_ready():
@@ -31,31 +71,7 @@ async def on_message(message):
 
     if message.content == "!afzal":
         print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
-        title = "Verdict..."
-        school, raison = get_meteo()[0], get_meteo()[1]
-        time = datetime.now() + timedelta(hours=5)
-        weekend = False
-        if time.weekday() == 5 or time.weekday() == 6:
-            weekend = True
-
-        if not school and weekend:
-            desc = "Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!"
-
-        elif not school and not weekend:
-            desc = "Pena lekol acoz ena " + raison
-
-        elif school and weekend:
-            if raison == "ene alert cyclone classe I.":
-                desc = "Meme si ena ene cyclone classe I, ti pou ena lekol si nou pa ti dans weekend. To bien gopia."
-            else:
-                desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
-
-        else:
-            if raison == "ene alert cyclone classe I.":
-                desc = "Meme si ena ene cyclone classe I, ena lekol demain."
-            else:
-                desc = "Aret fer paresse, ena lekol demain."
-
+        title, desc = create_embed()[0], create_embed()[1]
         embed = discord.Embed(title=title, description=desc, color=0x8564dd)
         embed.set_author(name="Pena Lekol Bot (click to view code)", url="https://github.com/keethesh/PenaLekolBot")
         embed.set_footer(text="Made by keethesh#4492")
@@ -87,25 +103,21 @@ def get_meteo():
         ecole = False
         reason = "ene avis lapli torrentiel."
 
-    elif fuzz.partial_ratio(texte, "classe I" or "classe 1") >= 75:
-        ecole = True
-        reason = "ene alert cyclone classe I."
-
-    elif fuzz.partial_ratio(texte, "classe II" or "classe 2") >= 75:
-        ecole = False
-        reason = "ene alert cyclone classe II."
-
-    elif fuzz.partial_ratio(texte, "classe III" or "classe 3") >= 75:
-        ecole = False
-        reason = "ene alert cyclone classe III."
-
-    elif fuzz.partial_ratio(texte, "classe IV" or "classe 4") >= 75:
+    elif fuzz.partial_ratio(texte, "classe 4") >= 80:
         ecole = False
         reason = "ene alert cyclone classe IV."
 
-    elif fuzz.partial_ratio(texte, "classe V" or "classe 5") >= 75:
+    elif fuzz.partial_ratio(texte, "classe 3") >= 80:
         ecole = False
-        reason = "ene alert cyclone classe V."
+        reason = "ene alert cyclone classe III."
+
+    elif fuzz.partial_ratio(texte, "classe 2") >= 80:
+        ecole = False
+        reason = "ene alert cyclone classe II."
+
+    elif fuzz.partial_ratio(texte, "classe 1") <= 80:
+        ecole = True
+        reason = "ene alert cyclone classe I."
 
     else:
         ecole = True
@@ -124,8 +136,8 @@ def download_screenshot():
 
 
 keep_alive.keep_alive()
-
 try:
     client.run(TOKEN)
 except AttributeError:
     raise ValueError("Token cannot be loaded")
+# tl.start()
