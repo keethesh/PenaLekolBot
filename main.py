@@ -18,7 +18,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 def create_embed():
     title = "Verdict..."
-    school, raison = get_meteo()[0], get_meteo()[1]
+    school, raison = get_meteo()
     # time = datetime.now() + timedelta(hours=5)
     time = datetime.now() + timedelta(seconds=10)
     weekend = False
@@ -71,7 +71,7 @@ async def on_message(message):
 
     if message.content == "!afzal":
         print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
-        title, desc = create_embed()[0], create_embed()[1]
+        title, desc = create_embed()
         embed = discord.Embed(title=title, description=desc, color=0x8564dd)
         embed.set_author(name="Pena Lekol Bot (click to view code)", url="https://github.com/keethesh/PenaLekolBot")
         embed.set_footer(text="Made by keethesh#4492")
@@ -90,6 +90,7 @@ async def on_message(message):
 
 
 def get_meteo():
+
     response = requests.get("http://metservice.intnet.mu/")
     doc = html.fromstring(response.content)
     texte = doc.xpath("//*[@id=\"content\"]/div[2]/div/div[1]/p/marquee/a/span"
@@ -115,7 +116,7 @@ def get_meteo():
         ecole = False
         reason = "ene alert cyclone classe II."
 
-    elif fuzz.partial_ratio(texte, "classe 1") <= 80:
+    elif fuzz.partial_ratio(texte, "classe 1") >= 80:
         ecole = True
         reason = "ene alert cyclone classe I."
 
