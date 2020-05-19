@@ -8,8 +8,6 @@ from fuzzywuzzy import fuzz
 from lxml import html
 # from timeloop import Timeloop
 
-import keep_alive
-
 client = discord.Client()
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -136,7 +134,6 @@ def download_screenshot():
         f.write(response)
 
 
-keep_alive.keep_alive()
 try:
     client.run(TOKEN)
 except AttributeError:
