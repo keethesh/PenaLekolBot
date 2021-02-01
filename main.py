@@ -1,141 +1,82 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
+import aiohttp
 import discord
-import requests
+from discord.ext.commands import Bot
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz
 from lxml import html
-# from timeloop import Timeloop
 
-client = discord.Client()
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-# tl = Timeloop()
+bot = Bot(command_prefix='!', case_insensitive=True)
 
 
-def create_embed():
-    title = "Verdict..."
-    school, raison = get_meteo()
-    # time = datetime.now() + timedelta(hours=5)
-    time = datetime.now() + timedelta(seconds=10)
-    weekend = False
-    if time.weekday() == 5 or time.weekday() == 6:
-        weekend = True
+async def create_embed():
+    title = "Eski ena lekol?"
+    is_school, reason = await get_meteo()
+    time = datetime.now()
+    weekend = time.weekday() == 5 or time.weekday() == 6
 
-    if not school and weekend:
-        desc = "Pena lekol acoz ena " + raison + " Ek en plis weekend la, couyon!"
-
-    elif not school and not weekend:
-        desc = "Pena lekol acoz ena " + raison
-
-    elif school and weekend:
-        if raison == "ene alert cyclone classe I.":
-            desc = "Meme si ena ene cyclone classe I, ti pou ena lekol si nou pa ti dans weekend. To bien gopia."
+    if weekend:
+        if is_school:
+            if reason == "ene alert cyclone classe I.":
+                desc = "Meme si ena ene cyclone classe I, ti pou ena lekol si nou pa ti dans weekend. To bien gopia."
+            else:
+                desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
         else:
-            desc = "Ti kapav ena lekol, mais nous dans weekend. To bien gopia."
+            desc = "Pena lekol acoz ena " + reason + " Ek en plis weekend la, gopia"
 
     else:
-        if raison == "ene alert cyclone classe I.":
-            desc = "Meme si ena ene cyclone classe I, ena lekol demain."
+        if not is_school:
+            desc = "Pena lekol acoz ena " + reason
         else:
-            desc = "Aret fer paresse, ena lekol demain."
-
+            if reason == "ene alert cyclone classe I.":
+                desc = "Meme si ena ene cyclone classe I, ena lekol demain."
+            else:
+                desc = "Aret fer paresse, ena lekol demain."
     return title, desc
 
 
-# @tl.job(interval=timedelta(hours=5))
-# def automate_checks():
-    # school, raison = get_meteo()[0], [1]
-    # channel = client.get_channel(687591883643289624)
-    # school = False
-    # if not school:
-    #     await channel.send("@everyone Pena lekol!!!!! ")
-
-@client.event
+@bot.event
 async def on_ready():
-    for guild in client.guilds:
-        print(f'{client.user} is connected to the following guild:\n'
+    for guild in bot.guilds:
+        print(f'{bot.user} is connected to the following guild:\n'
               f'{guild.name} (with id {guild.id})\n')
 
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-
-    author = message.author
-    message_time = (message.created_at + timedelta(hours=3)).strftime("%d/%m/%Y %H:%M")
-
-    if message.content == "!afzal":
-        print(str(message_time) + " | " + str(message.guild) + ": " + str(author) + " has sent command \"!afzal\"")
-        title, desc = create_embed()
-        embed = discord.Embed(title=title, description=desc, color=0x8564dd)
-        embed.set_author(name="Pena Lekol Bot (click to view code)", url="https://github.com/keethesh/PenaLekolBot")
-        embed.set_footer(text="Made by keethesh#4492")
-        await message.channel.send("Kiken ine ecrire \"!afzal\", ala rezilta⬇️", embed=embed)
-
-    # elif message.content == "!screenshot":
-    #     e = discord.Embed(title="Screenshot", description="http://metservice.intnet.mu/")
-    #     download_screenshot()
-    #     await message.channel.send_file("screenshot.jpeg", content="...", filename="...")
-    #     file = discord.File("filepath.png", filename="...")
-    #     await message.channel.send(embed=e)
-    elif message.content == "!stp":
-        await message.channel.send("!stp pour afficher ce message")
-        await message.channel.send("!afzal pour voir si y'a ecole ou pas")
-        # await message.channel.send("!screenshot pour avoir une screen du site de la meteo")
+@bot.command(help="Pour voir si y'a école ou pas")
+async def afzal(ctx):
+    title, desc = await create_embed()
+    embed = discord.Embed(title=title, description=desc, color=0x8564dd)
+    embed.set_author(name='PenaLekolBot (click to view code)', url="https://github.com/keethesh/PenaLekolBot")
+    embed.set_footer(text='Made by keethesh#4492')
+    await ctx.send(embed=embed)
 
 
-def get_meteo():
+async def get_meteo():
+    async with aiohttp.ClientSession() as session:
+        async with session.get('http://metservice.intnet.mu') as response:
+            doc = html.fromstring(await response.read())
+    meteo_text = doc.xpath("//div[@class='warning']//a/span")[0].text.strip()
 
-    response = requests.get("http://metservice.intnet.mu/")
-    doc = html.fromstring(response.content)
-    texte = doc.xpath("//*[@id=\"content\"]/div[2]/div/div[1]/p/marquee/a/span"
-                      )[0].text.strip()
+    possible_states = (('fortes', 75, False, 'ene avis lapli fort.'),
+                       ('torrentielles', 75, False, 'ene avis lapli torrentiel.'),
+                       ('classe 4', 80, False, 'ene alert cyclone classe 4.'),
+                       ('classe 3', 80, False, 'ene alert cyclone classe 3.'),
+                       ('classe 2', 80, False, 'ene alert cyclone classe 2.'),
+                       ('classe 1', 80, True, 'ene alert cyclone classe 1.'))
 
-    if fuzz.partial_ratio(texte, "fortes") >= 75:
-        ecole = False
-        reason = "ene avis lapli fort."
+    for possibility in possible_states:
+        to_match, match_ratio, is_school, description = possibility
+        if fuzz.partial_ratio(meteo_text, to_match) >= match_ratio:
+            return is_school, description
 
-    elif fuzz.partial_ratio(texte, "torrentielles") >= 75:
-        ecole = False
-        reason = "ene avis lapli torrentiel."
-
-    elif fuzz.partial_ratio(texte, "classe 4") >= 80:
-        ecole = False
-        reason = "ene alert cyclone classe IV."
-
-    elif fuzz.partial_ratio(texte, "classe 3") >= 80:
-        ecole = False
-        reason = "ene alert cyclone classe III."
-
-    elif fuzz.partial_ratio(texte, "classe 2") >= 80:
-        ecole = False
-        reason = "ene alert cyclone classe II."
-
-    elif fuzz.partial_ratio(texte, "classe 1") >= 80:
-        ecole = True
-        reason = "ene alert cyclone classe I."
-
-    else:
-        ecole = True
-        reason = "Ena lekol"
-    return ecole, reason
-
-
-def download_screenshot():
-    apiflash_access_key = "043019f3a4a84a86b4a6a7d4bf52e98c"
-    url = "http://metservice.intnet.mu/"
-    response = requests.get(
-        "https://api.apiflash.com/v1/urltoimage?access_key=" +
-        apiflash_access_key + "&url=" + url).content
-    with open("screenshot.jpeg", "wb+") as f:
-        f.write(response)
+    return True, 'ena lekol'
 
 
 try:
-    client.run(TOKEN)
+    bot.run(TOKEN)
 except AttributeError:
     raise ValueError("Token cannot be loaded")
-# tl.start()
