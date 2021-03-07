@@ -62,6 +62,7 @@ async def get_meteo():
     meteo_text = doc.xpath("//div[@class='warning']//a/span")[0].text.strip()
 
     possible_states = (('fortes', 75, False, 'ene avis lapli fort.'),
+                       ('Heavy', 75, False, 'ene avis lapli fort.'),
                        ('torrentielles', 75, False, 'ene avis lapli torrentiel.'),
                        ('classe 4', 80, False, 'ene alert cyclone classe 4.'),
                        ('classe 3', 80, False, 'ene alert cyclone classe 3.'),
