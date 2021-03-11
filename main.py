@@ -59,7 +59,10 @@ async def get_meteo():
     async with aiohttp.ClientSession() as session:
         async with session.get('http://metservice.intnet.mu') as response:
             doc = html.fromstring(await response.read())
-    meteo_text = doc.xpath("//div[@class='warning']//a/span")[0].text.strip()
+    try:
+        meteo_text = doc.xpath("//div[@class='warning']//a/span")[0].text.strip()
+    except IndexError:
+        return True, 'ena lekol'
 
     possible_states = (('fortes', 75, False, 'ene avis lapli fort.'),
                        ('Heavy', 75, False, 'ene avis lapli fort.'),
